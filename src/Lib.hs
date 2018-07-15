@@ -14,6 +14,7 @@ import Control.Concurrent
 import Control.Monad.Trans.Reader  (ReaderT, ask, runReaderT)
 import Control.Monad.IO.Class      (liftIO)
 import Servant
+import Relations
 
 data User = User
   { userId        :: Int
