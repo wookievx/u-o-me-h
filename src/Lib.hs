@@ -16,26 +16,26 @@ import Control.Monad.IO.Class      (liftIO)
 import Servant
 import Relations
 
-data User = User
+data ExampleUser = ExampleUser
   { userId        :: Int
   , userFirstName :: String
   , userLastName  :: String
   } deriving (Eq, Show)
 
 data Users = Users
-  { users :: MVar [User]
+  { users :: MVar [ExampleUser]
   }
 
 type AppM = ReaderT Users Handler
 
-$(deriveJSON defaultOptions ''User)
+$(deriveJSON defaultOptions ''ExampleUser)
 
-type API = "users" :> ( Get '[JSON] [User] :<|> (ReqBody '[JSON] User :> Post '[JSON] User))
+type API = "users" :> ( Get '[JSON] [ExampleUser] :<|> (ReqBody '[JSON] ExampleUser :> Post '[JSON] ExampleUser))
 
 startApp :: IO ()
 startApp = startStateApp defaultUsers
 
-startStateApp :: [User] -> IO ()
+startStateApp :: [ExampleUser] -> IO ()
 startStateApp users = do
   v <- newMVar users
   let userVar = Users v
@@ -44,12 +44,12 @@ startStateApp users = do
 api :: Proxy API
 api = Proxy
 
-insertUser :: Users -> User -> IO ()
+insertUser :: Users -> ExampleUser -> IO ()
 insertUser (Users v) user = do
   users <- takeMVar v
   putMVar v (user : users)
 
-lookupUsers :: Users -> IO [User]
+lookupUsers :: Users -> IO [ExampleUser]
 lookupUsers (Users v) = do
   users <- takeMVar v
   putMVar v users
@@ -58,12 +58,12 @@ lookupUsers (Users v) = do
 
 stateServer :: ServerT API AppM
 stateServer = getUsers :<|> createUser
-    where getUsers :: AppM [User]
+    where getUsers :: AppM [ExampleUser]
           getUsers = do
             users <- ask
             liftIO $ lookupUsers users
 
-          createUser :: User -> AppM User
+          createUser :: ExampleUser -> AppM ExampleUser
           createUser user = do
             users <- ask
             liftIO $ insertUser users user
@@ -75,8 +75,8 @@ nt s x = runReaderT x s
 stateApp :: Users -> Application
 stateApp users = serve api $ hoistServer api (nt users) stateServer
 
-defaultUsers :: [User]
-defaultUsers = [ User 1 "Isaac" "Newton"
-               , User 2 "Albert" "Einstein"
+defaultUsers :: [ExampleUser]
+defaultUsers = [ ExampleUser 1 "Isaac" "Newton"
+               , ExampleUser 2 "Albert" "Einstein"
                ]
 
