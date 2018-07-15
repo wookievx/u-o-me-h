@@ -1,5 +1,9 @@
 {-# LANGUAGE TemplateHaskell #-}
-module Relations (registerPayment) where
+module Relations (registerPayment
+                 , User
+                 , Money
+                 , PaymentEvent
+                 ) where
 
 import qualified Data.Map.Strict as Map
 import Control.Concurrent
@@ -23,3 +27,4 @@ registerPayment v (single @ Single {payee=p}) = do
   return $ calculate single
   where calculate :: Num a => PaymentEvent c a -> Money c a
         calculate Single {currency=cur, payee=p} = Money { mCur=cur, amount=(foldl (+) 0 p) }
+
