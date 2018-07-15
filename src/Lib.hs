@@ -4,6 +4,8 @@
 module Lib
     ( startApp
     , stateApp
+    , defaultUsers
+    , Users(Users)
     ) where
 
 import Data.Aeson

@@ -1,18 +1,39 @@
 {-# LANGUAGE TemplateHaskell #-}
-module Relations (registerPayment) where
+{-# LANGUAGE DeriveGeneric #-}
+module Relations
+  ( registerPayment
+  , groupEvents
+  , User(User)
+  , firstName
+  , lastName
+  , Money(Money)
+  , mCur
+  , amount
+  , PaymentEvent(Single)
+  , who
+  , currency
+  , payee
+  ) where
 
-import qualified Data.Map.Strict as Map
+import qualified Data.HashMap.Strict as Map
+import GHC.Generics (Generic)
+import Data.Hashable
 import Control.Concurrent
 import Control.Monad.Trans.Reader  (ReaderT, ask, runReaderT)
 
-data User = User String String deriving (Eq, Show)
-data Money c a = Money { mCur :: c, amount :: a} deriving (Eq, Show)
+data User = User { firstName :: String, lastName :: String } deriving (Eq, Show, Generic)
+instance Hashable User
+
+data Money c a = Money { mCur :: c, amount :: a} deriving (Eq, Show, Generic)
+instance (Hashable c, Hashable a) => Hashable (Money c a)
 
 data PaymentEvent c a = Single
   { who :: User
   , currency :: c
-  , payee :: Map.Map User a
-  } deriving (Eq, Show)
+  , payee :: Map.HashMap User a
+  } deriving (Eq, Show, Generic)
+
+instance (Hashable c, Hashable a) => Hashable (PaymentEvent c a)
 
 type EventLog c a = MVar [PaymentEvent c a]
 
@@ -23,3 +44,10 @@ registerPayment v (single @ Single {payee=p}) = do
   return $ calculate single
   where calculate :: Num a => PaymentEvent c a -> Money c a
         calculate Single {currency=cur, payee=p} = Money { mCur=cur, amount=(foldl (+) 0 p) }
+
+
+groupEvents :: (Hashable a, Eq a, Hashable c, Eq c) => [PaymentEvent c a] -> Map.HashMap (PaymentEvent c a) [PaymentEvent c a]
+groupEvents events = Map.fromList . (map unpack) $ events where
+  unpack event @ Single { payee=p } = (event, filter fromPayee events) where
+    payeeUsers = (map fst . Map.toList . payee) $ event
+    fromPayee Single { who=w } = elem w payeeUsers

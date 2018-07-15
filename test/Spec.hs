@@ -2,16 +2,22 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Main (main) where
 
-import Lib (app)
+import Lib (stateApp, defaultUsers, Users(Users))
+import Control.Concurrent
+import RelationsSpec(groupSpec)
 import Test.Hspec
 import Test.Hspec.Wai
 import Test.Hspec.Wai.JSON
 
 main :: IO ()
-main = hspec spec
+main = hspec spec *> hspec groupSpec
 
 spec :: Spec
-spec = with (return app) $ do
+spec = with (do
+  v <- newMVar defaultUsers
+  let userVar = Users v
+  return $ stateApp userVar
+  ) $ do
     describe "GET /users" $ do
         it "responds with 200" $ do
             get "/users" `shouldRespondWith` 200
