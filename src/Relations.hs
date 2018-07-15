@@ -22,4 +22,4 @@ registerPayment v (single @ Single {payee=p}) = do
   putMVar v (single : events)
   return $ calculate single
   where calculate :: Num a => PaymentEvent c a -> Money c a
-        calculate Single {currency=cur, payee=p} = Money { mCur=cur, amount=(foldl (\f s -> f + s) 0 p) }
+        calculate Single {currency=cur, payee=p} = Money { mCur=cur, amount=(foldl (+) 0 p) }
