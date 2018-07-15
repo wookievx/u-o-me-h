@@ -79,4 +79,3 @@ defaultUsers :: [ExampleUser]
 defaultUsers = [ ExampleUser 1 "Isaac" "Newton"
                , ExampleUser 2 "Albert" "Einstein"
                ]
-
