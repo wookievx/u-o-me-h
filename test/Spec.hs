@@ -4,13 +4,16 @@ module Main (main) where
 
 import Lib (stateApp, defaultUsers, Users(Users))
 import Control.Concurrent
-import RelationsSpec(groupSpec)
+import RelationsSpec(groupSpec, optimiseSpec)
 import Test.Hspec
 import Test.Hspec.Wai
 import Test.Hspec.Wai.JSON
 
 main :: IO ()
-main = hspec spec *> hspec groupSpec
+main = do
+  hspec spec
+  hspec groupSpec
+  hspec optimiseSpec
 
 spec :: Spec
 spec = with (do
