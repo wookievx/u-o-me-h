@@ -32,6 +32,5 @@ optCA = produceEvent Single { eventID=3, who=userC, currency="USD", payee=Map.si
 optimiseSpec :: Spec
 optimiseSpec = do
   describe "one optimisation step" $ do
-    it "correctly optimise relations" $ do
-      res <- optimiseStep events
-      res `shouldBe` (optAC : optBC : optCA : [])
+    it "correctly optimise relations" $
+      optimiseStep events `shouldBe` (optAC : optBC : optCA : [])

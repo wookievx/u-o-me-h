@@ -66,22 +66,8 @@ groupEvents events = Map.fromList . (map unpack) $ events where
     payeeUsers = (map fst . Map.toList . payee) $ event
     fromPayee Single { who=w } = elem w payeeUsers
 
-initialiseID :: [PaymentEvent c a] -> IO (MVar Int)
-initialiseID [] = newMVar 0
-initialiseID events = newMVar . maximum . map eventID $ events
-
-nextID :: MVar Int -> IO Int
-nextID log = do
-  max <- takeMVar log
-  let next = max + 1
-  return next <* putMVar log next
-
-optimiseStep :: (Hashable a, Eq a, Hashable c, Eq c) => [PaymentEvent c a] -> IO [PaymentEvent c a]
-optimiseStep events = do
-  let idVar = initialiseID events
-  let grouped = groupEvents events
-  optimisedS <- foldl step (return Set.empty) . sort . Map.toList $ grouped
-  let optimised = Set.elems optimisedS
-  return optimised where
-            step s ((f, [])) = (Set.insert f) <$> s
+optimiseStep :: (Hashable a, Eq a, Hashable c, Eq c) => [PaymentEvent c a] -> [PaymentEvent c a]
+optimiseStep events = Set.elems . foldl step Set.empty . sort . Map.toList $ grouped where
+            grouped = groupEvents events
+            step s ((f, [])) = Set.insert f s
             step s ((f, elems)) = undefined
